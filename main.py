@@ -1,3 +1,4 @@
+from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +11,15 @@ from api.tatrapi import router as tatr_router
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+allow_all = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_all,
+    allow_credentials=True,
+    allow_methods=allow_all,
+    allow_headers=allow_all,
+)
 
 # Mount a directory to serve static files (uploaded images)
 app.mount("/static", StaticFiles(directory="static"), name="static")

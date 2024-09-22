@@ -1,51 +1,74 @@
-# api/extract_text_api.py
+from fastapi import APIRouter, UploadFile, HTTPException, Request
+from fastapi.responses import StreamingResponse, JSONResponse
+from PIL import Image
+import csv
+import traceback
+from io import StringIO, BytesIO
+from scripts.combined import tatr_function
+import logging
+from starlette.concurrency import run_in_threadpool
 
-from fastapi import APIRouter, Request
-import json
-from scripts import paddle_bbox
-from scripts import table_transformer
-
-# Define the router with a prefix for '/api'
 router = APIRouter()
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 @router.post("/tatr")
-async def tatr_api_function(request: Request):
-    output_tatr = table_transformer.ocr.tatr_ocr
-    # label = ""
-    # image_url = ""
+async def process_image(file: UploadFile, request: Request):
+    if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PNG or JPEG image.")
 
-    # form = await request.form()
-    # upload_file = form["upload_file_2"]
-    # contents = await upload_file.read()
+    try:
+        # Read file content
+        content = await file.read()
+        
+        # Check file size (10 MB limit)
+        if len(content) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large. Maximum size is 10 MB.")
 
-    # # Save the uploaded image
-    # image_filename = f"static/uploaded_files/{upload_file.filename}"
-    # with open(image_filename, "wb") as f:
-    #     f.write(contents)
+        # Create a BytesIO object instead of saving to disk
+        image_stream = BytesIO(content)
 
-    # image_url = f"static/uploaded_files/{upload_file.filename}"
+        # Verify it's a valid image
+        try:
+            with Image.open(image_stream) as img:
+                img.verify()
+            image_stream.seek(0)
+        except Exception as e:
+            logger.error(f"Invalid image file: {str(e)}")
+            raise HTTPException(status_code=400, detail="Invalid image file.")
 
-    # # Assuming paddle_bbox.create_json returns the bounding box data as JSON
-    # output_string = paddle_bbox.create_json(image_url)
-    # output_json = json.loads(output_string)
+        # Call tatr_function and get CSV data
+        logger.info(f"Processing image: {file.filename}")
+        output_csv_data = await run_in_threadpool(tatr_function, image_stream)
 
-    # bounding_boxes = []
-    # for item in output_json:
-    #     if isinstance(item, dict):
-    #         box = item["bounding_box"]
-    #         text = item["text"]
-    #         # Convert box coordinates into a usable format for the frontend
-    #         x, y, width, height = box[0][0], box[0][1], box[2][0] - box[0][0], box[2][1] - box[0][1]
-    #         bounding_boxes.append({
-    #             "x": x,
-    #             "y": y,
-    #             "width": width,
-    #             "height": height,
-    #             "text": text
-    #         })
+        # Check if output_csv_data is None or empty
+        # if not output_csv_data:
+        #     logger.error("tatr_function returned None or empty data")
+        #     raise HTTPException(status_code=500, detail="Image processing failed to produce any data.")
 
-    # return {
-    #     "image_url": image_url,
-    #     "annotated_image_url": image_url,  # Just returning the same for this example
-    #     "bounding_boxes": bounding_boxes
-    # }
+        logger.info(f"Successfully processed image: {file.filename}")
+
+        # Convert CSV to stream for streaming response
+        csv_stream = StringIO()
+        csv_writer = csv.writer(csv_stream)
+        csv_writer.writerows(output_csv_data)
+
+        csv_stream.seek(0)
+        
+        # Return the CSV as a streaming response
+        return StreamingResponse(
+            csv_stream, 
+            media_type="text/csv", 
+            headers={"Content-Disposition": f"attachment; filename=output_{file.filename}.csv"}
+        )
+    
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error processing image {file.filename}: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Hide detailed error information from users for security
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.")
