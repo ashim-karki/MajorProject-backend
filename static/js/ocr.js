@@ -2,11 +2,11 @@ let boundingBoxes = []; // To store bounding boxes
         let uploadedImageUrl = ''; // To store uploaded image URL
         let tooltip = null;
 
-        async function handleFileUpload(event) {
+        async function handleFirstButtonClick(event) {
             const file = event.target.files[0];
             if (file) {
                 const formData = new FormData();
-                formData.append('upload_file', file);
+                formData.append('upload_file_1', file);
 
                 // Show loading overlay
                 document.getElementById('loadingOverlay').style.display = 'flex';

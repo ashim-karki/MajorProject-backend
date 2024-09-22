@@ -13,7 +13,7 @@ async def extract_text(request: Request):
     image_url = ""
 
     form = await request.form()
-    upload_file = form["upload_file"]
+    upload_file = form["upload_file_1"]
     contents = await upload_file.read()
 
     # Save the uploaded image
