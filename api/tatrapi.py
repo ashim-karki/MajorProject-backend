@@ -23,7 +23,7 @@ async def process_image(file: UploadFile = File(...)):
         output_csv_path = tatr_function(temp_file_path)
 
         # Remove the temp image file after processing
-        # os.remove(temp_file_path)
+        os.remove(temp_file_path)
 
         # Return the generated CSV file as a response
         return FileResponse(output_csv_path, filename="output.csv", media_type='text/csv')
