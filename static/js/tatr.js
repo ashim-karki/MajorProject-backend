@@ -1,36 +1,51 @@
-function handleSecondButtonClick(event) {
-    // Prevent default form submission behavior (if necessary)
-    event.preventDefault();
+async function handleSecondButtonClick(event) {
+    // Get the file selected by the user
+    const file = event.target.files[0];
+    if (!file) {
+        alert('Please select a file.');
+        return;
+    }
 
-    // Access the selected file(s)
-    const file = event.target.files[0];  // Access the first selected file
+    // Show the loading spinner (you could style this element in your CSS)
+    document.getElementById('loadingOverlay').style.display = 'flex';
 
-    if (file) {
-        console.log('File selected:', file.name);
+    // Prepare the file to be sent in the FormData object
+    const formData = new FormData();
+    formData.append('file', file);
 
-        // Create a new FormData object to hold the file
-        const formData = new FormData();
-        formData.append('file', file);  // 'file' should match the backend parameter name
-
-        // Send the file to the backend API using fetch
-        fetch('/api/tatr', {
+    try {
+        // Send the file to the FastAPI backend using fetch
+        const response = await fetch('http://localhost:8000/api/tatr', {
             method: 'POST',
-            body: formData,
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('File upload failed');
-            }
-            return response.json();  // Assuming the backend returns JSON
-        })
-        .then(data => {
-            console.log('Upload successful!', data);
-            // You can handle the response data here (e.g., show a success message)
-        })
-        .catch(error => {
-            console.error('Error uploading file:', error);
+            body: formData
         });
-    } else {
-        console.log('No file selected');
+
+        if (!response.ok) {
+            throw new Error('Error during file upload');
+        }
+
+        // Receive the CSV file from the backend as a blob
+        const csvBlob = await response.blob();
+        const csvUrl = window.URL.createObjectURL(csvBlob);
+
+        // Hide the loading spinner
+        loadingOverlay.style.display = 'none';
+
+        // Create a link to download the CSV file
+        const downloadLink = document.createElement('a');
+        downloadLink.href = csvUrl;
+        downloadLink.download = 'output.csv';
+        downloadLink.innerHTML = 'Download CSV';
+        document.body.appendChild(downloadLink);
+
+        // Optionally trigger the download automatically
+        downloadLink.click();
+        
+        // Remove the link from the DOM after the download is triggered
+        document.body.removeChild(downloadLink);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while uploading the file.');
+        loadingOverlay.style.display = 'none';
     }
 }

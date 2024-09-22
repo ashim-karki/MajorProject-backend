@@ -8,6 +8,7 @@ from starlette.requests import Request
 # Import the router from the extract_text_api module
 from api.extracttext import router as extract_text_router
 from api.tatrapi import router as tatr_router
+from api.layoutlmapi import router as layout_router
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -35,6 +36,8 @@ def home(request: Request):
 app.include_router(extract_text_router, prefix="/api", tags=["extracttext"])
 
 app.include_router(tatr_router, prefix="/api", tags=["tatr"])
+
+app.include_router(layout_router, prefix="/api", tags=["layout"])
 
 # USING OPENCV2
 

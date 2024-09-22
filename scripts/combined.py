@@ -193,3 +193,6 @@ def tatr_function(img_path):
         wr = csv.writer(result_file, dialect='excel')
         for row_text in final_output:
             wr.writerow(row_text)
+    # print(type(final_output))
+    final_output_file = 'output.csv'
+    return final_output_file

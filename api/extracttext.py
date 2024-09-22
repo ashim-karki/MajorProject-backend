@@ -4,6 +4,8 @@ from fastapi import APIRouter, Request
 import json
 from scripts import paddle_bbox
 
+from PIL import Image
+
 # Define the router with a prefix for '/api'
 router = APIRouter()
 
@@ -41,7 +43,7 @@ async def extract_text(request: Request):
                 "height": height,
                 "text": text
             })
-
+    
     return {
         "image_url": image_url,
         "annotated_image_url": image_url,  # Just returning the same for this example
