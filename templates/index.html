@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+    <title>Image To Text</title>
+    <link href="/static/css/style.css" rel="stylesheet" />
+</head>
+<body>
+<section class="container mx-auto px-4 py-10 flex flex-col items-center">
+    <div>
+        <h3 class="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-8">
+            Structured Handwritten Data Extraction
+        </h3>
+    </div>
+    
+    <form id="uploadForm" enctype="multipart/form-data" class="w-full max-w-lg">
+        <div class="flex items-center justify-center bg-gray-200 h-40 rounded-lg shadow-inner">
+            <label class="w-64 flex flex-col items-center px-4 py-4 bg-green-600 text-white rounded-lg shadow-lg cursor-pointer hover:bg-green-700 transition-all">
+                <svg class="w-8 h-8" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
+                </svg>
+                <span class="mt-2 text-base leading-normal">Select a file</span>
+                <input type="file" name="upload_file" class="hidden" onchange="handleFileUpload(event)" />
+            </label>
+        </div>
+    </form>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Container for images -->
+    <div class="image-container">
+        <!-- Original image -->
+        <img id="uploadedImage" src="" alt="Uploaded Image" style="display: none;" />
+        <!-- Canvas to display the annotated image -->
+        <canvas id="imageCanvas" style="display: none;"></canvas>
+    </div>
+</section>
+<script src="/static/js/script.js"></script>
+</body>
+</html>
