@@ -2,7 +2,7 @@ let boundingBoxes = []; // To store bounding boxes
         let uploadedImageUrl = ''; // To store uploaded image URL
         let tooltip = null;
 
-        async function handleFileUploadforOCR(event) {
+        async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (file) {
                 const formData = new FormData();
